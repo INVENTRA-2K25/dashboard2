@@ -1,0 +1,501 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the EdHub platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "User's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "User's last name."
+        },
+        "role": {
+          "type": "string",
+          "description": "User's role (Student, Teacher, Parent, Admin)."
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "firstName",
+        "lastName",
+        "role"
+      ]
+    },
+    "Student": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Student",
+      "type": "object",
+      "description": "Represents a student user in the EdHub platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Student entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 Student)"
+        },
+        "gradeLevel": {
+          "type": "number",
+          "description": "Student's grade level."
+        },
+        "courseIds": {
+          "type": "array",
+          "description": "References to Courses. (Relationship: Student N:N Course)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "gradeLevel"
+      ]
+    },
+    "Teacher": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Teacher",
+      "type": "object",
+      "description": "Represents a teacher user in the EdHub platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Teacher entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 Teacher)"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Teacher's subject of expertise."
+        },
+        "courseIds": {
+          "type": "array",
+          "description": "References to Courses. (Relationship: Teacher 1:N Course)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "subject"
+      ]
+    },
+    "Parent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Parent",
+      "type": "object",
+      "description": "Represents a parent user in the EdHub platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Parent entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 Parent)"
+        },
+        "studentIds": {
+          "type": "array",
+          "description": "References to Students. (Relationship: Parent 1:N Student)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId"
+      ]
+    },
+    "Admin": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Admin",
+      "type": "object",
+      "description": "Represents an administrator user in the EdHub platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Admin entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:1 Admin)"
+        }
+      },
+      "required": [
+        "id",
+        "userId"
+      ]
+    },
+    "Course": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Course",
+      "type": "object",
+      "description": "Represents a course offered on the EdHub platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Course entity."
+        },
+        "teacherId": {
+          "type": "string",
+          "description": "Reference to Teacher. (Relationship: Teacher 1:N Course)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the course."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the course."
+        }
+      },
+      "required": [
+        "id",
+        "teacherId",
+        "name",
+        "description"
+      ]
+    },
+    "Homework": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Homework",
+      "type": "object",
+      "description": "Represents a homework assignment.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Homework entity."
+        },
+        "courseId": {
+          "type": "string",
+          "description": "Reference to Course. (Relationship: Course 1:N Homework)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the homework assignment."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the homework assignment."
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "Due date for the homework assignment.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "courseId",
+        "title",
+        "description",
+        "dueDate"
+      ]
+    },
+    "Submission": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Submission",
+      "type": "object",
+      "description": "Represents a student's submission for a homework assignment.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Submission entity."
+        },
+        "studentId": {
+          "type": "string",
+          "description": "Reference to Student. (Relationship: Student 1:N Submission)"
+        },
+        "homeworkId": {
+          "type": "string",
+          "description": "Reference to Homework. (Relationship: Homework 1:N Submission)"
+        },
+        "submissionDate": {
+          "type": "string",
+          "description": "Date of the submission.",
+          "format": "date-time"
+        },
+        "content": {
+          "type": "string",
+          "description": "Content of the submission (e.g., text, link to file)."
+        }
+      },
+      "required": [
+        "id",
+        "studentId",
+        "homeworkId",
+        "submissionDate",
+        "content"
+      ]
+    },
+    "Complaint": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Complaint",
+      "type": "object",
+      "description": "Represents a complaint submitted by a parent or teacher.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Complaint entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Complaint)"
+        },
+        "submissionDate": {
+          "type": "string",
+          "description": "Date of the complaint submission",
+          "format": "date-time"
+        },
+        "content": {
+          "type": "string",
+          "description": "Content of the complaint."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the complaint (e.g., Open, In Progress, Resolved)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "submissionDate",
+        "content",
+        "status"
+      ]
+    },
+    "CalendarEvent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CalendarEvent",
+      "type": "object",
+      "description": "Represents an event in the EdHub calendar.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CalendarEvent entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the event."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the event."
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Start time of the event.",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "description": "End time of the event.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "startTime",
+        "endTime"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. Accessible only to the user and admins. Includes standard user profile data (email, firstName, lastName, role).",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_student/{userId}",
+        "definition": {
+          "entityName": "Student",
+          "schema": {
+            "$ref": "#/backend/entities/Student"
+          },
+          "description": "Indicates that a user has the 'Student' role. Document existence grants the role.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who is a student."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_teacher/{userId}",
+        "definition": {
+          "entityName": "Teacher",
+          "schema": {
+            "$ref": "#/backend/entities/Teacher"
+          },
+          "description": "Indicates that a user has the 'Teacher' role. Document existence grants the role.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who is a teacher."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_parent/{userId}",
+        "definition": {
+          "entityName": "Parent",
+          "schema": {
+            "$ref": "#/backend/entities/Parent"
+          },
+          "description": "Indicates that a user has the 'Parent' role. Document existence grants the role.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who is a parent."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "Admin",
+          "schema": {
+            "$ref": "#/backend/entities/Admin"
+          },
+          "description": "Indicates that a user has the 'Admin' role. Document existence grants the role.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who is an administrator."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/courses/{courseId}",
+        "definition": {
+          "entityName": "Course",
+          "schema": {
+            "$ref": "#/backend/entities/Course"
+          },
+          "description": "Stores course information. Accessible to teachers and students enrolled in the course.",
+          "params": [
+            {
+              "name": "courseId",
+              "description": "The unique identifier of the course."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/courses/{courseId}/homework/{homeworkId}",
+        "definition": {
+          "entityName": "Homework",
+          "schema": {
+            "$ref": "#/backend/entities/Homework"
+          },
+          "description": "Stores homework assignments for a specific course. Accessible to teachers and students enrolled in the course.",
+          "params": [
+            {
+              "name": "courseId",
+              "description": "The unique identifier of the course."
+            },
+            {
+              "name": "homeworkId",
+              "description": "The unique identifier of the homework assignment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/submissions/{submissionId}",
+        "definition": {
+          "entityName": "Submission",
+          "schema": {
+            "$ref": "#/backend/entities/Submission"
+          },
+          "description": "Stores student submissions for homework assignments. Accessible to the student who submitted it and the teacher of the course. Includes a reference to the studentId and homeworkId.",
+          "params": [
+            {
+              "name": "submissionId",
+              "description": "The unique identifier of the submission."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/complaints/{complaintId}",
+        "definition": {
+          "entityName": "Complaint",
+          "schema": {
+            "$ref": "#/backend/entities/Complaint"
+          },
+          "description": "Stores complaints submitted by parents or teachers. Accessible to the user who submitted it and admins.",
+          "params": [
+            {
+              "name": "complaintId",
+              "description": "The unique identifier of the complaint."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/calendar_events/{eventId}",
+        "definition": {
+          "entityName": "CalendarEvent",
+          "schema": {
+            "$ref": "#/backend/entities/CalendarEvent"
+          },
+          "description": "Stores calendar events. Publicly accessible.",
+          "params": [
+            {
+              "name": "eventId",
+              "description": "The unique identifier of the calendar event."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support EdHub's role-based access control and features. It uses path-based ownership for private user data and a membership map approach for collaborative data where appropriate.  Denormalization is used extensively to ensure Authorization Independence (CRITICAL) and support secure list operations (QAPs).\n\n**Authorization Independence:** The design avoids hierarchical authorization dependencies by denormalizing authorization context. For instance, user roles are checked via dedicated collections (roles_student, roles_teacher, etc.) or through path-based ownership, instead of relying on `get()` calls to parent documents. This is crucial for atomic operations and easier debugging.\n\n**Structural Segregation:**  Data with different access needs are stored in separate collections, ensuring that each collection has a homogeneous security posture. For example, user profiles are stored under `/users/{userId}` for private access.\n\n**Access Modeling:**\n*   **Private Data:**  User-specific data (e.g., profile information) is stored using path-based ownership (`/users/{userId}`).\n*   **Global Roles:**  Admin roles are managed through dedicated collections (`/roles_admin/{userId}`), using existence over content for simpler rules.\n\n**QAPs (Rules Are Not Filters):**  The structure enables secure `list` operations by avoiding the need to filter based on data within the documents. Roles are checked via dedicated role collections, making list operations secure without complex filtering.\n\n**Invariants:**  The structure supports the integrity of ownership by using path-based ownership where applicable and enforcing consistent naming conventions."
+  }
+}

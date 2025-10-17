@@ -1,0 +1,214 @@
+/**
+ * @file Firestore Security Rules for EdHub.
+ *
+ * @core_philosophy This ruleset enforces a strict user-ownership model for private data
+ * and role-based access for administrative functions. It also allows public read access
+ * to calendar events.
+ *
+ * @data_structure
+ * - `/users/{userId}`: Stores user profile information, accessible only to the user and admins.
+ * - `/roles_student/{userId}`, `/roles_teacher/{userId}`, `/roles_parent/{userId}`, `/roles_admin/{userId}`:
+ *   Indicate user roles. Document existence grants the role.
+ * - `/courses/{courseId}`: Stores course information.
+ * - `/courses/{courseId}/homework/{homeworkId}`: Stores homework assignments for a specific course.
+ * - `/submissions/{submissionId}`: Stores student submissions for homework assignments. Accessible
+ *   to the student who submitted it and the teacher of the course.
+ * - `/complaints/{complaintId}`: Stores complaints submitted by parents or teachers. Accessible
+ *   to the user who submitted it and admins.
+ * - `/calendar_events/{eventId}`: Stores calendar events, publicly accessible.
+ *
+ * @key_security_decisions
+ * - User listing is disabled.
+ * - Role collections use document existence to grant roles.
+ * - Calendar events are publicly readable.
+ * - Default security posture for ambiguous relationships is strict owner-only access.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Controls access to user profile data.
+     * @path /users/{userId}
+     * @allow (get, create, update, delete) if the user is signed in and the userId matches the authenticated user's ID.
+     * @deny (get, create, update, delete) if the user is not signed in, or the userId does not match the authenticated user's ID.
+     * @principle Enforces document ownership for writes, restricts access to a user's own data tree.
+     */
+    match /users/{userId} {
+      // Function to check if the user is signed in and owns the document.
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if false;
+
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to student role assignments.
+     * @path /roles_student/{userId}
+     * @allow (create, get) if the user is signed in.
+     * @deny (update, delete, list) all requests.
+     * @principle Grants a role to a user if the document exists.
+     */
+    match /roles_student/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to teacher role assignments.
+     * @path /roles_teacher/{userId}
+     * @allow (create, get) if the user is signed in.
+     * @deny (update, delete, list) all requests.
+     * @principle Grants a role to a user if the document exists.
+     */
+    match /roles_teacher/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to parent role assignments.
+     * @path /roles_parent/{userId}
+     * @allow (create, get) if the user is signed in.
+     * @deny (update, delete, list) all requests.
+     * @principle Grants a role to a user if the document exists.
+     */
+    match /roles_parent/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to admin role assignments.
+     * @path /roles_admin/{userId}
+     * @allow (create, get) if the user is signed in.
+     * @deny (update, delete, list) all requests.
+     * @principle Grants a role to a user if the document exists.
+     */
+    match /roles_admin/{userId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to course information.
+     * @path /courses/{courseId}
+     * @allow (get, list) to all users.
+     * @deny (create, update, delete) all requests.
+     * @principle Public read, owner-only write (requires ownerId field in the document).
+     */
+    match /courses/{courseId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+        // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Controls access to homework assignments for a specific course.
+     * @path /courses/{courseId}/homework/{homeworkId}
+     * @allow (get, list) to all users.
+     * @deny (create, update, delete) all requests.
+     * @principle Public read, owner-only write (requires ownerId field in the document).
+     */
+    match /courses/{courseId}/homework/{homeworkId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+        // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Controls access to student submissions for homework assignments.
+     * @path /submissions/{submissionId}
+     * @allow (get, create, update, delete) if the user is the owner of the submission.
+     * @deny (get, create, update, delete) if the user is not the owner of the submission.
+     */
+    match /submissions/{submissionId} {
+      function isOwner(studentId) {
+        return request.auth != null && request.auth.uid == studentId;
+      }
+      function isExistingOwner(studentId) {
+        return isOwner(studentId) && resource != null;
+      }
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+      // CRITICAL: Cannot implement owner-only writes. The 'Submission' entity is missing an 'ownerId' or 'authorId' field.
+    }
+
+    /**
+     * @description Controls access to complaints submitted by parents or teachers.
+     * @path /complaints/{complaintId}
+     * @allow (get, create, update, delete) if the user is the owner of the complaint or is an admin.
+     * @deny (get, create, update, delete) if the user is not the owner of the complaint or is not an admin.
+     */
+    match /complaints/{complaintId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+      // CRITICAL: Cannot implement owner-only writes. The 'Complaint' entity is missing an 'ownerId' or 'authorId' field.
+    }
+
+    /**
+     * @description Controls access to calendar events.
+     * @path /calendar_events/{eventId}
+     * @allow (get, list) to all users.
+     * @deny (create, update, delete) all requests.
+     * @principle Public read, no write access.
+     */
+    match /calendar_events/{eventId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+  }
+}

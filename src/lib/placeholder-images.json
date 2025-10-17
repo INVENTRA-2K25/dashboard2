@@ -1,0 +1,34 @@
+{
+  "placeholderImages": [
+    {
+      "id": "student-avatar",
+      "description": "Avatar for a student user",
+      "imageUrl": "https://picsum.photos/seed/student/100/100",
+      "imageHint": "person student"
+    },
+    {
+      "id": "teacher-avatar",
+      "description": "Avatar for a teacher user",
+      "imageUrl": "https://picsum.photos/seed/teacher/100/100",
+      "imageHint": "person teacher"
+    },
+    {
+      "id": "parent-avatar",
+      "description": "Avatar for a parent user",
+      "imageUrl": "https://picsum.photos/seed/parent/100/100",
+      "imageHint": "person parent"
+    },
+    {
+      "id": "admin-avatar",
+      "description": "Avatar for an admin user",
+      "imageUrl": "https://picsum.photos/seed/admin/100/100",
+      "imageHint": "person admin"
+    },
+    {
+      "id": "login-background",
+      "description": "Futuristic background for login page",
+      "imageUrl": "https://picsum.photos/seed/loginbg/1920/1080",
+      "imageHint": "abstract futuristic"
+    }
+  ]
+}
