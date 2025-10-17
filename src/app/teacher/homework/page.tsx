@@ -1,26 +1,24 @@
 'use client';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { HomeworkAssignment } from '@/components/teacher/homework-assignment';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
+import type { Homework } from '@/lib/types';
 
-type HomeworkData = {
-    id: string;
-    title: string;
-    subject: string;
-    dueDate: string;
+// Simplified type for this page's purpose
+type HomeworkData = Omit<Homework, 'status' | 'submittedDate'> & {
     submissions: number;
     totalStudents: number;
-}
+};
 
 export default function HomeworkPage() {
-    const { user } = useUser();
     const firestore = useFirestore();
     
+    // Fetch from the new top-level 'homework_definitions' collection
     const homeworkQuery = useMemoFirebase(
-        () => (user ? collection(firestore, `teachers/${user.uid}/homework`) : null),
-        [user, firestore]
+        () => collection(firestore, `homework_definitions`),
+        [firestore]
     );
     const { data: homeworks, isLoading } = useCollection<HomeworkData>(homeworkQuery);
     

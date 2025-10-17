@@ -8,6 +8,33 @@ export type User = {
   avatar: string;
 };
 
+// Represents a question in a quiz
+export type QuizQuestion = {
+  question: string;
+  options: string[];
+  answer: string;
+};
+
+// Represents an exam created by a teacher
+export type ExamDefinition = {
+  id: string;
+  topic: string;
+  classId: string;
+  dueDate: string;
+  questions: QuizQuestion[];
+};
+
+// Represents a student's instance of an exam
+export type Exam = {
+  id: string;          // Corresponds to an ExamDefinition ID
+  subject: string;
+  date: string;        // Date assigned
+  dueDate: string;
+  score?: number;      // Score is present after completion
+  total: number;
+  status: 'upcoming' | 'completed' | 'missed';
+};
+
 export type Homework = {
   id: string;
   title: string;
@@ -17,13 +44,7 @@ export type Homework = {
   submittedDate?: string;
 };
 
-export type Exam = {
-  id: string;
-  subject: string;
-  date: string;
-  score?: number;
-  total: number;
-};
+// (Other types remain the same...)
 
 export type StudyLink = {
   id: string;

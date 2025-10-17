@@ -6,18 +6,16 @@ import { collection, query, where } from 'firebase/firestore';
 import type { CalendarEvent } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
-export default function CalendarPage() {
+export default function StudentCalendarPage() {
     const { user } = useUser();
     const firestore = useFirestore();
     
-    // Personal calendar events
     const personalCalendarQuery = useMemoFirebase(
         () => (user ? collection(firestore, `students/${user.uid}/calendar`) : null),
         [user, firestore]
     );
     const { data: personalEvents, isLoading: personalLoading } = useCollection<CalendarEvent>(personalCalendarQuery);
 
-    // Global calendar events for everyone or students
     const globalCalendarQuery = useMemoFirebase(
         () => query(collection(firestore, 'calendar_events'), where('audience', 'in', ['everyone', 'students'])),
         [firestore]
@@ -36,7 +34,6 @@ export default function CalendarPage() {
         );
     }
     
-    // Merge and deduplicate events
     const allEventsMap = new Map<string, CalendarEvent>();
     (personalEvents || []).forEach(event => allEventsMap.set(event.id, event));
     (globalEvents || []).forEach(event => allEventsMap.set(event.id, event));

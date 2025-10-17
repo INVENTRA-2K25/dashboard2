@@ -51,19 +51,26 @@ export function JoinClass({ role }: { role: UserRole }) {
         } else {
             const classDoc = querySnapshot.docs[0];
             const classId = classDoc.id;
-            const subcollectionName = role === 'student' ? 'students' : 'teachers';
+            const collectionName = role === 'student' ? 'students' : 'teachers';
 
             // Add user to the class's subcollection
-            await setDoc(doc(firestore, `classes/${classId}/${subcollectionName}`, user.uid), {
+            await setDoc(doc(firestore, `classes/${classId}/${collectionName}`, user.uid), {
               name: user.displayName,
               joinedAt: new Date().toISOString(),
             });
+            
+            // If teacher, add their ID to the class document for easy querying
+            if (role === 'teacher') {
+              await updateDoc(doc(firestore, 'classes', classId), {
+                teacherIds: arrayUnion(user.uid)
+              });
+            }
 
-            // Also update the user's main document with the courseId
-            const userDocRef = doc(firestore, `${subcollectionName}`, user.uid);
-            await updateDoc(userDocRef, {
-              courseIds: arrayUnion(classId)
-            });
+            // Create or update the user's main profile document
+            const userDocRef = doc(firestore, `${collectionName}`, user.uid);
+            await setDoc(userDocRef, {
+                courseIds: arrayUnion(classId)
+            }, { merge: true });
 
             toast({
                 title: 'Success!',

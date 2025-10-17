@@ -20,6 +20,7 @@ import {
   UserPlus,
   QrCode,
   FolderArchive,
+  FileQuestion,
 } from 'lucide-react';
 
 export const navLinks: Record<
@@ -27,21 +28,21 @@ export const navLinks: Record<
   { title: string; href: string; icon: React.ElementType }[]
 > = {
   student: [
-    { title: 'Dashboard', href: '/student', icon: LayoutDashboard },
+    { title: 'Calendar', href: '/student', icon: Calendar },
     { title: 'AI Focus Mode', href: '/student/focus-mode', icon: Focus },
     { title: 'Join Class', href: '/student/join-class', icon: UserPlus },
     { title: 'Homework', href: '/student/homework', icon: Book },
     { title: 'My Vault', href: '/student/vault', icon: FolderArchive },
-    { title: 'Calendar', href: '/student/calendar', icon: Calendar },
+    { title: 'Quiz Generator', href: '/student/quiz-generator', icon: FileQuestion },
     { title: 'Leaderboard', href: '/student/ranking', icon: Trophy },
     { title: 'Study Links', href: '/student/study-links', icon: Link },
     { title: 'Exams', href: '/student/exams', icon: FileText },
-    { title: 'Achievements', href: '/student/gamification', icon: Shield },
     { title: 'Notifications', href: '/student/notifications', icon: Bell },
   ],
   parent: [
     { title: 'Dashboard', href: '/parent', icon: LayoutDashboard },
     { title: 'Child Analytics', href: '/parent/analytics', icon: LineChart },
+    { title: 'Join Class', href: '/parent/join-class', icon: UserPlus },
     { title: 'Complaint Portal', href: '/parent/complaints', icon: Frown },
     { title: 'Homework Tracking', href: '/parent/homework', icon: ClipboardList },
     { title: 'Behaviour Insights', href: '/parent/behavior-insights', icon: BrainCircuit },
@@ -56,6 +57,8 @@ export const navLinks: Record<
     { title: 'Homework', href: '/teacher/homework', icon: Book },
     { title: 'Student Ranking', href: '/teacher/ranking', icon: Trophy },
     { title: 'Behaviour Mgt.', href: '/teacher/behavior-management', icon: UserCheck },
+    { title: 'Calendar', href: '/teacher/calendar', icon: Calendar },
+    { title: 'Quiz Generator', href: '/teacher/quiz-generator', icon: FileQuestion },
     { title: 'Notifications', href: '/teacher/notifications', icon: Bell },
   ],
   admin: [
