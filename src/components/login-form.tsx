@@ -36,8 +36,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { EdHubLogo } from '@/components/icons/edhub-logo';
 import type { UserRole } from '@/lib/types';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -70,7 +71,7 @@ const roles: RoleInfo[] = [
     value: 'parent',
     icon: User,
     title: 'Parent',
-    description: 'View your child\'s progress.',
+    description: "View your child's progress.",
   },
   {
     value: 'admin',
@@ -87,6 +88,7 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const auth = useAuth();
+  const firestore = useFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -102,13 +104,24 @@ export function LoginForm() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
-      
-      toast({
-        title: 'Login Successful',
-        description: `Welcome back!`,
-      });
 
-      router.push(`/${activeTab}`);
+      // Fetch user's role from Firestore
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const userRole = userData.role;
+
+        toast({
+          title: 'Login Successful',
+          description: `Welcome back!`,
+        });
+
+        router.push(`/${userRole}`);
+      } else {
+        throw new Error('User role not found.');
+      }
 
     } catch (error: any) {
       console.error("Firebase Auth Error:", error);

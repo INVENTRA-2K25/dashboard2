@@ -27,7 +27,7 @@ import {
 import { Copy, RefreshCw, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, doc, setDoc } from 'firebase/firestore';
 
 const classes = Array.from({ length: 10 }, (_, i) => `${i + 1}`);
 const divisions = ['A', 'B'];
@@ -61,18 +61,28 @@ export function ClassCodeGenerator() {
       return;
     }
     setIsGenerating(true);
-    const newCode = {
-        code: `${selectedClass}${selectedDivision}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+
+    const code = `${selectedClass}${selectedDivision}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const newClassRef = doc(collection(firestore, 'classes'));
+
+    // Create the document in the 'classes' collection
+    await setDoc(newClassRef, {
+      className: selectedClass,
+      division: selectedDivision,
+      code: code,
+    });
+
+    // Create the code lookup document
+    await setDoc(doc(firestore, 'classCodes', newClassRef.id), {
+        code: code,
         class: selectedClass,
         division: selectedDivision,
         date: new Date().toISOString(),
-    };
-    
-    await addDocumentNonBlocking(collection(firestore, 'classCodes'), newCode);
+    });
     
     toast({
-        title: "Code Generated",
-        description: `New code ${newCode.code} created successfully.`
+        title: "Class and Code Generated",
+        description: `New code ${code} created successfully.`
     })
     setIsGenerating(false);
   };

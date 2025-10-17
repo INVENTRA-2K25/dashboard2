@@ -51,7 +51,8 @@ export type CalendarEvent = {
   id: string;
   title: string;
   date: string;
-  type: 'homework' | 'exam' | 'event';
+  type: 'homework' | 'exam' | 'event' | 'holiday';
+  audience?: 'everyone' | 'teachers' | 'students' | 'parents';
 };
 
 export type Notification = {
@@ -65,6 +66,7 @@ export type Notification = {
 export type Student = User & {
   role: 'student';
   grade: number;
+  courseIds?: string[];
   homework: Homework[];
   exams: Exam[];
   studyLinks: StudyLink[];
@@ -96,6 +98,7 @@ export type Complaint = {
 export type Teacher = User & {
   role: 'teacher';
   subject: string;
+  courseIds?: string[];
 };
 
 export type Parent = User & {

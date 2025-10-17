@@ -9,7 +9,7 @@ export default function JoinClassPage() {
         >
             <div className="space-y-8 fade-in">
                 <h1 className="text-3xl font-headline font-bold">Join Class</h1>
-                <JoinClass />
+                <JoinClass role="student" />
             </div>
         </DashboardLayout>
     );

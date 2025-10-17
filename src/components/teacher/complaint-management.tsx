@@ -14,19 +14,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import type { Complaint } from '@/lib/types';
+import type { Complaint, Student } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { useFirestore, useUser, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking, useMemoFirebase } from '@/firebase';
-import { collection, doc } from 'firebase/firestore';
+import { useFirestore, useUser, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
+import { collection, doc, query, where, getDocs } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Student } from '@/lib/types';
 
-export function ComplaintManagement({ complaints }: { complaints: Complaint[] }) {
+export function ComplaintManagement({ complaints, students }: { complaints: Complaint[], students: Student[] }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedStudent, setSelectedStudent] = useState('');
@@ -35,9 +34,6 @@ export function ComplaintManagement({ complaints }: { complaints: Complaint[] })
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-
-  const studentsQuery = useMemoFirebase(() => user ? collection(firestore, `teachers/${user.uid}/students`) : null, [user, firestore]);
-  const { data: students, isLoading: studentsLoading } = useCollection<Student>(studentsQuery);
 
 
   const getStatusVariant = (status: Complaint['status']) => {
@@ -66,19 +62,55 @@ export function ComplaintManagement({ complaints }: { complaints: Complaint[] })
     const student = students?.find(s => s.id === selectedStudent);
     if (!student) return;
 
+    // 1. Create the complaint
     const newComplaint = {
         title,
         description,
         studentId: selectedStudent,
         studentName: student.name,
         teacherId: user.uid,
-        userId: user.uid,
+        userId: user.uid, // The teacher is the user in this case
         date: new Date().toISOString(),
         status: 'pending'
     };
-
     await addDocumentNonBlocking(collection(firestore, 'complaints'), newComplaint);
     toast({ title: 'Complaint Submitted' });
+
+    // 2. Send notification to the student
+    const studentNotification = {
+        title: `New Complaint Filed: ${title}`,
+        description: `A new complaint has been filed by your teacher. Please check with your parents.`,
+        date: new Date().toISOString(),
+        read: false,
+        userId: student.id,
+    };
+    await addDocumentNonBlocking(collection(firestore, `students/${student.id}/notifications`), studentNotification);
+    
+    // 3. Find the parent and send notification
+    try {
+        const parentsRef = collection(firestore, 'parents');
+        const q = query(parentsRef, where('childIds', 'array-contains', student.id));
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.forEach(async (parentDoc) => {
+            const parentId = parentDoc.id;
+            const parentNotification = {
+                title: `New Complaint Regarding ${student.name}`,
+                description: `A new complaint has been filed by your child's teacher: "${title}"`,
+                date: new Date().toISOString(),
+                read: false,
+                userId: parentId,
+            };
+            await addDocumentNonBlocking(collection(firestore, `parents/${parentId}/notifications`), parentNotification);
+        });
+        toast({ title: 'Notifications Sent', description: "The student and parent have been notified."});
+
+    } catch (error) {
+        console.error("Error finding or notifying parent:", error);
+        toast({ variant: 'destructive', title: 'Parent Notification Failed', description: 'Could not find or notify the parent.'});
+    }
+
+
     setTitle('');
     setDescription('');
     setSelectedStudent('');
@@ -91,7 +123,7 @@ export function ComplaintManagement({ complaints }: { complaints: Complaint[] })
         <CardHeader>
           <CardTitle>Submit a New Complaint</CardTitle>
           <CardDescription>
-            Log a new complaint regarding a student.
+            Log a new complaint regarding a student. This will also notify the parent.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -101,7 +133,7 @@ export function ComplaintManagement({ complaints }: { complaints: Complaint[] })
                     <SelectValue placeholder="Select a student" />
                 </SelectTrigger>
                 <SelectContent>
-                    {studentsLoading ? <SelectItem value="loading" disabled>Loading...</SelectItem> : students?.map(student => (
+                    {students?.map(student => (
                     <SelectItem key={student.id} value={student.id}>{student.name}</SelectItem>
                     ))}
                 </SelectContent>
@@ -110,7 +142,7 @@ export function ComplaintManagement({ complaints }: { complaints: Complaint[] })
             <Textarea placeholder="Describe the issue in detail..." value={description} onChange={e => setDescription(e.target.value)} />
             <Button onClick={handleSubmit} disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className='animate-spin mr-2' />}
-                Submit Complaint
+                Submit Complaint & Notify
             </Button>
           </form>
         </CardContent>
@@ -128,7 +160,7 @@ export function ComplaintManagement({ complaints }: { complaints: Complaint[] })
                   <div className="flex justify-between items-center w-full pr-4 text-left">
                     <div>
                       <div className="font-medium">{complaint.title}</div>
-                      <div className="text-sm text-muted-foreground">From: Parent of {complaint.studentName}</div>
+                      <div className="text-sm text-muted-foreground">For: {complaint.studentName}</div>
                     </div>
                     <Badge variant={getStatusVariant(complaint.status)} className="capitalize">{complaint.status}</Badge>
                   </div>

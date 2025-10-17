@@ -12,16 +12,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, query, where, getDocs, doc, setDoc, arrayUnion, updateDoc } from 'firebase/firestore';
+import type { UserRole } from '@/lib/types';
 
 
-export function JoinClass() {
+export function JoinClass({ role }: { role: UserRole }) {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
+
+  const isParent = role === 'parent';
 
   const handleJoinClass = async () => {
     if (!code.trim() || !user) {
@@ -47,11 +50,21 @@ export function JoinClass() {
               });
         } else {
             const classDoc = querySnapshot.docs[0];
-            const studentRef = doc(firestore, 'students', user.uid);
-            // This is a simplified example. In a real app, you might add the student to a subcollection on the class.
-            await updateDoc(studentRef, {
-                courseIds: arrayUnion(classDoc.id)
-            })
+            const classId = classDoc.id;
+            const subcollectionName = role === 'student' ? 'students' : 'teachers';
+
+            // Add user to the class's subcollection
+            await setDoc(doc(firestore, `classes/${classId}/${subcollectionName}`, user.uid), {
+              name: user.displayName,
+              joinedAt: new Date().toISOString(),
+            });
+
+            // Also update the user's main document with the courseId
+            const userDocRef = doc(firestore, `${subcollectionName}`, user.uid);
+            await updateDoc(userDocRef, {
+              courseIds: arrayUnion(classId)
+            });
+
             toast({
                 title: 'Success!',
                 description: `You've successfully joined Class ${classDoc.data().class}-${classDoc.data().division}.`,
@@ -77,7 +90,10 @@ export function JoinClass() {
       <CardHeader>
         <CardTitle>Join a Class</CardTitle>
         <CardDescription>
-          Enter the unique code provided by your administrator or teacher to get enrolled in a class.
+          {isParent
+            ? "Your child can join a class using a code from their dashboard. Parents view classes through their linked child's profile."
+            : "Enter the unique code provided by your administrator to get enrolled in a class."
+          }
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -86,10 +102,10 @@ export function JoinClass() {
             placeholder="Enter class code..."
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            disabled={isLoading}
+            disabled={isLoading || isParent}
             className="uppercase"
           />
-          <Button onClick={handleJoinClass} disabled={isLoading}>
+          <Button onClick={handleJoinClass} disabled={isLoading || isParent}>
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
