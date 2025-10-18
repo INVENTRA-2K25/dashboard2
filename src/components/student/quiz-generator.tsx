@@ -1,32 +1,79 @@
 'use client';
+
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Loader2, Sparkles } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Loader2, Sparkles, CheckCircle, XCircle } from 'lucide-react';
 import { generateQuizForTopic } from '@/ai/flows/generate-quiz-for-topic';
-import type { GenerateQuizForTopicOutput } from '@/ai/flows/generate-quiz-for-topic';
-import { Label } from '../ui/label';
+import type { GenerateQuizForTopicOutput, GenerateQuizForTopicInput } from '@/ai/flows/generate-quiz-for-topic';
 import { Slider } from '../ui/slider';
+import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 export function QuizGenerator() {
   const [topic, setTopic] = useState('');
   const [questionCount, setQuestionCount] = useState(5);
   const [isLoading, setIsLoading] = useState(false);
   const [quiz, setQuiz] = useState<GenerateQuizForTopicOutput['quiz'] | null>(null);
+  const [userAnswers, setUserAnswers] = useState<string[]>([]);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [score, setScore] = useState(0);
+
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
 
   const handleGenerateQuiz = async () => {
     if (!topic) return;
     setIsLoading(true);
     setQuiz(null);
+    setUserAnswers([]);
+    setIsSubmitted(false);
     try {
       const result = await generateQuizForTopic({ topic, questionCount });
       setQuiz(result.quiz);
+      setUserAnswers(new Array(result.quiz.length).fill(''));
     } catch (error) {
       console.error("Failed to generate quiz:", error);
     }
     setIsLoading(false);
+  };
+
+  const handleAnswerChange = (questionIndex: number, answer: string) => {
+    const newAnswers = [...userAnswers];
+    newAnswers[questionIndex] = answer;
+    setUserAnswers(newAnswers);
+  };
+
+  const handleSubmitQuiz = async () => {
+    if (!quiz) return;
+    let newScore = 0;
+    quiz.forEach((q, index) => {
+      if (q.answer === userAnswers[index]) {
+        newScore++;
+      }
+    });
+    setScore(newScore);
+    setIsSubmitted(true);
+
+    if (user) {
+        try {
+            await addDocumentNonBlocking(collection(firestore, `students/${user.uid}/quiz_results`), {
+                topic,
+                score: newScore,
+                total: quiz.length,
+                date: new Date().toISOString(),
+            });
+            toast({ title: 'Quiz Submitted!', description: `Your score of ${newScore}/${quiz.length} has been saved.` });
+        } catch (error) {
+            console.error("Error saving quiz result:", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Could not save your quiz result.' });
+        }
+    }
   };
 
   return (
@@ -61,24 +108,35 @@ export function QuizGenerator() {
 
         {quiz && (
           <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-4">Generated Quiz on: {topic}</h3>
-            <Accordion type="single" collapsible className="w-full">
-              {quiz.map((item, index) => (
-                <AccordionItem value={`item-${index}`} key={index}>
-                  <AccordionTrigger>{`Question ${index + 1}: ${item.question}`}</AccordionTrigger>
-                  <AccordionContent>
-                    <ul className="space-y-2">
-                      {item.options.map((option, optionIndex) => (
-                        <li key={optionIndex} className={`p-2 rounded-md ${option === item.answer ? 'bg-green-100 dark:bg-green-900' : 'bg-muted/50'}`}>
-                          {option}
-                          {option === item.answer && <span className="font-bold text-green-600 dark:text-green-400 ml-2">(Correct)</span>}
-                        </li>
-                      ))}
-                    </ul>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+            <h3 className="text-lg font-semibold mb-4">Quiz on: {topic}</h3>
+            {quiz.map((item, index) => (
+              <div key={index} className="mb-6">
+                <p className="font-semibold mb-2">{`${index + 1}. ${item.question}`}</p>
+                <RadioGroup onValueChange={(value) => handleAnswerChange(index, value)} disabled={isSubmitted}>
+                  {item.options.map((option, optionIndex) => (
+                    <div key={optionIndex} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`q${index}-o${optionIndex}`} />
+                      <Label htmlFor={`q${index}-o${optionIndex}`} className={
+                        isSubmitted && option === item.answer ? 'text-green-600' :
+                        isSubmitted && option === userAnswers[index] && option !== item.answer ? 'text-red-600' : ''
+                      }>
+                        {option}
+                      </Label>
+                      {isSubmitted && option === item.answer && <CheckCircle className="h-4 w-4 text-green-600" />}
+                      {isSubmitted && option === userAnswers[index] && option !== item.answer && <XCircle className="h-4 w-4 text-red-600" />}
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+            ))}
+            {!isSubmitted ? (
+                <Button onClick={handleSubmitQuiz}>Submit Quiz</Button>
+            ) : (
+                <div className='p-4 bg-muted rounded-md'>
+                    <h4 className='text-xl font-bold'>Quiz Complete!</h4>
+                    <p className='text-lg'>Your score: <span className='font-bold'>{score} / {quiz.length}</span></p>
+                </div>
+            )}
           </div>
         )}
       </CardContent>

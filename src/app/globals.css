@@ -8,74 +8,48 @@ body {
 
 @layer base {
   :root {
-    /* Base Colors for Light and Dark Mode */
-    --background: 216 100% 97%; /* #f5f7f8 - Fallback, will be overridden */
-    --foreground: 206 56% 14%; /* #101c22 - Fallback */
-
-    /* Primary & Accent Colors */
-    --primary: 206 93% 53%; /* #0da6f2 */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 100% 21%; /* #00316b */
-    --secondary-foreground: 210 40% 98%;
-    --accent: 127 75% 38%; /* #13b027 */
-    --accent-foreground: 210 40% 98%;
-
-    /* Other Theme Colors */
-    --card: 216 100% 97%;
-    --card-foreground: 206 56% 14%;
-    --popover: 216 100% 97%;
-    --popover-foreground: 206 56% 14%;
-    --muted: 210 14% 89%;
-    --muted-foreground: 215 25% 27%;
+    --background: 210 20% 96%; /* #F0F5FF */
+    --foreground: 210 10% 23%;
+    --card: 210 20% 99%;
+    --card-foreground: 210 10% 23%;
+    --popover: 210 20% 99%;
+    --popover-foreground: 210 10% 23%;
+    --primary: 210 84% 52%; /* #3399FF */
+    --primary-foreground: 210 20% 99%;
+    --secondary: 210 10% 40%;
+    --secondary-foreground: 210 20% 99%;
+    --muted: 210 10% 80%;
+    --muted-foreground: 210 10% 40%;
+    --accent: 180 74% 44%; /* #2BB9B9 */
+    --accent-foreground: 210 20% 99%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214 20% 65%;
-    --input: 214 20% 65%;
-    --ring: 206 93% 53%;
-    --radius: 0.5rem;
-
-    /* Gradient Colors */
-    --gradient-cyan: 180 100% 50%; /* #00ffff */
-    --gradient-violet: 271 76% 53%; /* #8a2be2 */
-    --gradient-teal: 180 100% 25%; /* #008080 */
-    --gradient-deep-blue: 228 100% 17%; /* #000B58 */
-
-    /* Chart Colors */
-    --chart-1: 206 93% 53%;
-    --chart-2: 127 75% 38%;
-    --chart-3: 271 76% 53%;
-    --chart-4: 180 100% 50%;
-    --chart-5: 210 100% 21%;
+    --destructive-foreground: 210 20% 99%;
+    --border: 210 10% 85%;
+    --input: 210 10% 85%;
+    --ring: 210 84% 52%;
+    --radius: 0.75rem;
   }
 
   .dark {
-    /* Base Colors */
-    --background: 206 38% 10%; /* #101c22 */
-    --foreground: 210 40% 96%;
-
-    /* Cards & Popovers */
-    --card: 206 38% 12%;
-    --card-foreground: 210 40% 96%;
-    --popover: 206 38% 10%;
-    --popover-foreground: 210 40% 96%;
-
-    /* Muted & Borders */
-    --muted: 215 28% 17%;
-    --muted-foreground: 215 21% 51%;
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-  }
-
-  /* Remove sidebar-specific variables as they are no longer needed */
-  :root, .dark {
-    --sidebar-background: transparent;
-    --sidebar-foreground: var(--foreground);
-    --sidebar-primary: var(--primary);
-    --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: hsl(var(--primary) / 0.1);
-    --sidebar-accent-foreground: var(--foreground);
-    --sidebar-border: hsl(var(--border) / 0.5);
-    --sidebar-ring: var(--ring);
+    --background: 210 10% 15%;
+    --foreground: 210 20% 96%;
+    --card: 210 10% 20%;
+    --card-foreground: 210 20% 96%;
+    --popover: 210 10% 15%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 210 84% 62%;
+    --primary-foreground: 210 10% 15%;
+    --secondary: 210 10% 30%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 210 10% 25%;
+    --muted-foreground: 210 10% 70%;
+    --accent: 180 74% 54%;
+    --accent-foreground: 210 10% 15%;
+    --destructive: 0 74% 50%;
+    --destructive-foreground: 210 20% 96%;
+    --border: 210 10% 30%;
+    --input: 210 10% 30%;
+    --ring: 210 84% 62%;
   }
 }
 
